@@ -1,22 +1,96 @@
-import React, { useState } from 'react';
-import { mockApplications, mockOpportunities, mockUsers } from '../../utils/mockData';
+import React, { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
+import apiService from '../../services/api';
+import { profileApi } from '../../services/profileApi';
 
 const AlumniApplicationsPage = () => {
-  const [applications, setApplications] = useState(mockApplications);
+  const location = useLocation();
+  const [applications, setApplications] = useState([]);
+  const [opportunities, setOpportunities] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [studentMap, setStudentMap] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const myApplications = applications.filter(app => 
-    mockOpportunities.find(opp => opp.id === app.opportunityId)?.postedBy === 2
-  );
+  useEffect(() => {
+    loadApplications();
+    loadOpportunities();
+  }, []);
+
+  const loadApplications = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getAlumniApplications();
+      setApplications(response.applications || []);
+      setError(null);
+    } catch (error) {
+      console.error('Failed to load applications:', error);
+      setError('Failed to load applications. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOpportunities = async () => {
+    try {
+      const response = await apiService.getMyOpportunities();
+      setOpportunities(response.opportunities || []);
+    } catch (error) {
+      console.error('Failed to load opportunities:', error);
+    }
+  };
+
+  const myApplications = applications;
 
   const filteredApplications = myApplications.filter(app => 
     filterStatus === 'all' || app.status === filterStatus
   );
 
-  const handleStatusChange = (applicationId, newStatus) => {
-    setApplications(prev => prev.map(app => 
-      app.id === applicationId ? { ...app, status: newStatus } : app
-    ));
+  // Fetch unique student profiles for displayed applications
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const uniqueIds = Array.from(new Set((applications || []).map(a => a.student_id)));
+        if (uniqueIds.length === 0) return;
+        const results = await Promise.all(
+          uniqueIds.map(async (id) => {
+            try {
+              const { profile } = await profileApi.getProfile('student', id);
+              return { id, profile };
+            } catch (e) {
+              return { id, profile: null };
+            }
+          })
+        );
+        const map = {};
+        results.forEach(({ id, profile }) => {
+          if (profile) {
+            map[id] = {
+              id,
+              name: profile.name,
+              email: profile.email,
+              profile_pic: profile.profile_pic,
+            };
+          }
+        });
+        setStudentMap(map);
+      } catch (err) {
+        console.error('Failed to load student profiles', err);
+      }
+    };
+    fetchStudents();
+  }, [applications]);
+
+  const handleStatusChange = async (applicationId, newStatus) => {
+    try {
+      await apiService.updateApplicationStatus(applicationId, newStatus);
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? { ...app, status: newStatus } : app
+      ));
+    } catch (error) {
+      console.error('Failed to update application status:', error);
+      alert('Failed to update application status. Please try again.');
+    }
   };
 
   const getStatusBadgeColor = (status) => {
@@ -32,10 +106,22 @@ const AlumniApplicationsPage = () => {
     }
   };
 
-  const getStudentName = (studentId) => {
-    const student = mockUsers.students.find(s => s.id === studentId);
-    return student ? student.name : `Student ${studentId}`;
+  const getStudent = (studentId) => studentMap[studentId];
+
+  const getOpportunityTitle = (opportunityId) => {
+    const opportunity = opportunities.find(opp => opp.id === opportunityId);
+    return opportunity ? opportunity.title : `Opportunity ${opportunityId}`;
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -58,6 +144,13 @@ const AlumniApplicationsPage = () => {
           </select>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -110,41 +203,53 @@ const AlumniApplicationsPage = () => {
         
         <div className="divide-y divide-gray-200">
           {filteredApplications.map((application) => {
-            const opportunity = mockOpportunities.find(opp => opp.id === application.opportunityId);
+            const student = getStudent(application.student_id);
+            const initials = student?.name ? student.name.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase() : String(application.student_id).charAt(0).toUpperCase();
             return (
               <div key={application.id} className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-lg font-medium text-gray-700">
-                          {getStudentName(application.studentId).charAt(0)}
-                        </span>
-                      </div>
+                      {student?.profile_pic ? (
+                        <img src={student.profile_pic} alt={student.name} className="w-12 h-12 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                          <span className="text-lg font-medium text-gray-700">{initials}</span>
+                        </div>
+                      )}
                       <div>
                         <h4 className="text-lg font-medium text-gray-900">
-                          {getStudentName(application.studentId)}
+                          {student ? (
+                            <Link to={`/students/${student.id}`} className="hover:underline">
+                              {student.name}
+                            </Link>
+                          ) : (
+                            <Link to={`/students/${application.student_id}`} className="hover:underline">
+                              {`Student ${application.student_id}`}
+                            </Link>
+                          )}
                         </h4>
-                        <p className="text-gray-600">{opportunity?.title}</p>
+                        <p className="text-sm text-gray-500">{student?.email || ''}</p>
+                        <p className="text-gray-600">{getOpportunityTitle(application.opportunity_id)}</p>
                         <p className="text-sm text-gray-500">
-                          Applied on {new Date(application.appliedAt).toLocaleDateString()}
+                          Applied on {new Date(application.applied_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     
-                    <div className="mb-4">
-                      <h5 className="font-medium text-gray-900 mb-2">Cover Letter:</h5>
-                      <p className="text-gray-600 bg-gray-50 p-3 rounded-md">
-                        {application.coverLetter}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Resume: {application.resume}</span>
-                      <button className="text-primary-600 hover:text-primary-700">
-                        Download Resume
-                      </button>
-                    </div>
+                    {application.resume_file && (
+                      <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                        <span>Resume: {application.resume_file}</span>
+                        <a
+                          href={apiService.getFileUrl(application.resume_file)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary-600 hover:text-primary-700"
+                        >
+                          View Resume
+                        </a>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="ml-6 flex flex-col items-end space-y-3">

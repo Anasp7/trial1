@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import apiService from '../../services/api';
 
 const AlumniOpportunitiesPage = () => {
+  const location = useLocation();
   const [opportunities, setOpportunities] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -16,13 +18,35 @@ const AlumniOpportunitiesPage = () => {
     duration: '',
     stipend: '',
     requirements: '',
-    deadline: ''
+    deadline: '',
+    min_cgpa: ''
   });
 
   // Load opportunities on component mount
   useEffect(() => {
     loadOpportunities();
   }, []);
+
+  // Handle edit opportunity from navigation state
+  useEffect(() => {
+    if (location.state?.editOpportunity) {
+      const opportunity = location.state.editOpportunity;
+      setFormData({
+        title: opportunity.title || '',
+        type: opportunity.type || 'internship',
+        description: opportunity.description || '',
+        company: opportunity.company || '',
+        location: opportunity.location || '',
+        duration: opportunity.duration || '',
+        stipend: opportunity.stipend || '',
+        requirements: opportunity.requirements || '',
+        deadline: opportunity.deadline || '',
+        min_cgpa: opportunity.min_cgpa || ''
+      });
+      setEditingId(opportunity.id);
+      setIsCreating(true);
+    }
+  }, [location.state]);
 
   const loadOpportunities = async () => {
     try {
@@ -50,14 +74,15 @@ const AlumniOpportunitiesPage = () => {
     e.preventDefault();
     
     try {
+      const payload = { ...formData, deadline: formData.deadline ? formData.deadline : null };
       if (editingId) {
         // Update existing opportunity
-        await apiService.updateOpportunity(editingId, formData);
+        await apiService.updateOpportunity(editingId, payload);
         await loadOpportunities(); // Reload to get updated data
         setEditingId(null);
       } else {
         // Create new opportunity
-        await apiService.createOpportunity(formData);
+        await apiService.createOpportunity(payload);
         await loadOpportunities(); // Reload to get new data
       }
       
@@ -71,7 +96,8 @@ const AlumniOpportunitiesPage = () => {
         duration: '',
         stipend: '',
         requirements: '',
-        deadline: ''
+        deadline: '',
+        min_cgpa: ''
       });
     } catch (error) {
       console.error('Failed to save opportunity:', error);
@@ -89,7 +115,8 @@ const AlumniOpportunitiesPage = () => {
       duration: opportunity.duration || '',
       stipend: opportunity.stipend || '',
       requirements: opportunity.requirements || '',
-      deadline: opportunity.deadline || ''
+      deadline: opportunity.deadline || '',
+      min_cgpa: opportunity.min_cgpa || ''
     });
     setEditingId(opportunity.id);
     setIsCreating(true);
@@ -119,7 +146,8 @@ const AlumniOpportunitiesPage = () => {
       duration: '',
       stipend: '',
       requirements: '',
-      deadline: ''
+      deadline: '',
+      min_cgpa: ''
     });
   };
 
@@ -207,6 +235,22 @@ const AlumniOpportunitiesPage = () => {
                   <option value="success_story">Success Story</option>
                 </select>
               </div>
+              {formData.type === 'scholarship' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Minimum CGPA</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="10"
+                    name="min_cgpa"
+                    value={formData.min_cgpa}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="e.g., 7.50"
+                  />
+                </div>
+              )}
             </div>
 
             <div>

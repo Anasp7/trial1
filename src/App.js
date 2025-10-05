@@ -138,6 +138,16 @@ function AppContent() {
             } 
           />
           <Route 
+            path="/students/:id" 
+            element={
+              <ProtectedRoute allowedRoles={['alumni','admin','student']}>
+                <DashboardLayout>
+                  <StudentProfilePage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/alumni/opportunities" 
             element={
               <ProtectedRoute allowedRoles={['alumni']}>

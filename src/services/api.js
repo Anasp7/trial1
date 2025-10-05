@@ -190,6 +190,11 @@ class ApiService {
     return this.request('/student/applications');
   }
 
+  getFileUrl(filename) {
+    if (!filename) return null;
+    return `${API_BASE_URL.replace('/api','')}/api/files/${encodeURIComponent(filename)}`;
+  }
+
   async withdrawApplication(applicationId) {
     return this.request(`/student/applications/${applicationId}`, {
       method: 'DELETE',
@@ -205,6 +210,11 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
+  }
+
+  // Users
+  async getStudentById(studentId) {
+    return this.request(`/admin/users/${studentId}`);
   }
 }
 

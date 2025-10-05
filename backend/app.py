@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -8,6 +8,7 @@ from routes.auth import auth_bp
 from routes.admin import admin_bp
 from routes.alumni import alumni_bp
 from routes.student import student_bp
+from routes.profile import profile_bp
 
 def create_app():
     app = Flask(__name__)
@@ -24,6 +25,13 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(alumni_bp)
     app.register_blueprint(student_bp)
+    app.register_blueprint(profile_bp)
+
+    # Serve uploaded files
+    @app.route('/api/files/<path:filename>')
+    def serve_file(filename):
+        from config import Config
+        return send_from_directory(Config.UPLOAD_FOLDER, filename, as_attachment=False)
     
     # Create tables
     with app.app_context():

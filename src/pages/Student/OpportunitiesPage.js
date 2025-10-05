@@ -3,14 +3,19 @@ import apiService from '../../services/api';
 
 const StudentOpportunitiesPage = () => {
   const [opportunities, setOpportunities] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [applyingTo, setApplyingTo] = useState(null);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  // Load opportunities on component mount
+  // Load opportunities and applications on component mount
   useEffect(() => {
     loadOpportunities();
+    loadApplications();
   }, []);
 
   const loadOpportunities = async () => {
@@ -24,6 +29,15 @@ const StudentOpportunitiesPage = () => {
       setError('Failed to load opportunities. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadApplications = async () => {
+    try {
+      const response = await apiService.getMyApplications();
+      setApplications(response.applications || []);
+    } catch (error) {
+      console.error('Failed to load applications:', error);
     }
   };
 
@@ -50,16 +64,54 @@ const StudentOpportunitiesPage = () => {
     }
   };
 
-  const handleApply = async (opportunityId) => {
+  const handleApply = (opportunityId) => {
+    const opportunity = opportunities.find(opp => opp.id === opportunityId);
+    setApplyingTo(opportunity);
+    setShowApplyModal(true);
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select a PDF, DOC, or DOCX file');
+        return;
+      }
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!applyingTo) return;
+
     try {
-      // For now, just show a success message
-      // In a real app, you'd open a modal for resume upload
-      await apiService.applyToOpportunity(opportunityId);
+      await apiService.applyToOpportunity(applyingTo.id, selectedFile);
       alert('Application submitted successfully!');
+      setShowApplyModal(false);
+      setApplyingTo(null);
+      setSelectedFile(null);
+      // Reload applications to update the UI
+      loadApplications();
     } catch (error) {
       console.error('Failed to apply:', error);
-      alert('Failed to submit application. Please try again.');
+      alert(`Failed to submit application: ${error.message}`);
     }
+  };
+
+  const isAlreadyApplied = (opportunityId) => {
+    return applications.some(app => app.opportunity_id === opportunityId);
+  };
+
+  const getApplicationStatus = (opportunityId) => {
+    const application = applications.find(app => app.opportunity_id === opportunityId);
+    return application ? application.status : null;
   };
 
   if (loading) {
@@ -180,12 +232,29 @@ const StudentOpportunitiesPage = () => {
               )}
             </div>
             
-            <button
-              onClick={() => handleApply(opportunity.id)}
-              className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-            >
-              Apply Now
-            </button>
+            {isAlreadyApplied(opportunity.id) ? (
+              <div className="w-full">
+                <div className="text-center py-2 px-4 bg-gray-100 text-gray-600 rounded-md mb-2">
+                  {getApplicationStatus(opportunity.id) === 'pending' && 'Application Pending'}
+                  {getApplicationStatus(opportunity.id) === 'accepted' && 'Application Accepted ✅'}
+                  {getApplicationStatus(opportunity.id) === 'declined' && 'Application Declined ❌'}
+                </div>
+                <button
+                  onClick={() => handleApply(opportunity.id)}
+                  className="w-full px-4 py-2 bg-gray-400 text-white rounded-md cursor-not-allowed"
+                  disabled
+                >
+                  Already Applied
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleApply(opportunity.id)}
+                className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+              >
+                Apply Now
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -194,6 +263,55 @@ const StudentOpportunitiesPage = () => {
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="text-gray-500 text-lg">No opportunities found</div>
           <div className="text-gray-400 text-sm mt-1">Try adjusting your search or filters</div>
+        </div>
+      )}
+
+      {/* Application Modal */}
+      {showApplyModal && applyingTo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Apply to {applyingTo.title}
+            </h3>
+            
+            <div className="mb-4">
+              <label htmlFor="resume" className="block text-sm font-medium text-gray-700 mb-2">
+                Upload Resume (PDF, DOC, DOCX - Max 10MB)
+              </label>
+              <input
+                type="file"
+                id="resume"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileSelect}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              />
+              {selectedFile && (
+                <p className="text-sm text-green-600 mt-1">
+                  Selected: {selectedFile.name}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowApplyModal(false);
+                  setApplyingTo(null);
+                  setSelectedFile(null);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitApplication}
+                disabled={!selectedFile}
+                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Submit Application
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

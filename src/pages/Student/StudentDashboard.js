@@ -1,5 +1,6 @@
 import React from 'react';
 import { mockOpportunities, getApplicationsByStudent } from '../../utils/mockData';
+import QuickActionCard from '../../components/QuickActionCard';
 
 const StudentDashboard = () => {
   const myApplications = getApplicationsByStudent(5); // Assuming current user is student with ID 5
@@ -81,42 +82,10 @@ const StudentDashboard = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">🔍</span>
-              <div>
-                <p className="font-medium text-gray-900">Browse Opportunities</p>
-                <p className="text-sm text-gray-600">Find internships & scholarships</p>
-              </div>
-            </div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">📝</span>
-              <div>
-                <p className="font-medium text-gray-900">Track Applications</p>
-                <p className="text-sm text-gray-600">Check application status</p>
-              </div>
-            </div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">🤝</span>
-              <div>
-                <p className="font-medium text-gray-900">Find Mentors</p>
-                <p className="text-sm text-gray-600">Connect with alumni</p>
-              </div>
-            </div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">📈</span>
-              <div>
-                <p className="font-medium text-gray-900">Success Stories</p>
-                <p className="text-sm text-gray-600">Get inspired</p>
-              </div>
-            </div>
-          </button>
+          <QuickActionCard icon="🔍" title="View Opportunities" description="Find internships & scholarships" path="/student/opportunities" />
+          <QuickActionCard icon="📝" title="My Applications" description="Check application status" path="/student/applications" />
+          <QuickActionCard icon="👤" title="Profile" description="Update your profile" path="/student/profile" />
+          <QuickActionCard icon="🤝" title="Mentorship" description="Connect with alumni" path="/student/mentorship" />
         </div>
       </div>
 

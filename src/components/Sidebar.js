@@ -80,11 +80,11 @@ const Sidebar = ({ userRole, onLogout }) => {
       </nav>
 
       {/* Logout Button */}
-      <div className="absolute bottom-4 left-4 right-4">
+      <div className="mt-auto p-4 border-t border-gray-200">
         <button
           onClick={onLogout}
-          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors ${
-            isCollapsed ? 'justify-center' : ''
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors ${
+            isCollapsed ? 'w-full justify-center' : ''
           }`}
         >
           <span className="text-lg">🚪</span>

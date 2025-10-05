@@ -1,9 +1,30 @@
-import React, { useState } from 'react';
-import { getApplicationsByStudent, mockOpportunities } from '../../utils/mockData';
+import React, { useState, useEffect } from 'react';
+import apiService from '../../services/api';
 
 const StudentApplicationsPage = () => {
-  const [applications] = useState(getApplicationsByStudent(5)); // Assuming current user is student with ID 5
+  const [applications, setApplications] = useState([]);
+  const [opportunities, setOpportunities] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const loadApplications = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getMyApplications();
+      setApplications(response.applications || []);
+      setError(null);
+    } catch (error) {
+      console.error('Failed to load applications:', error);
+      setError('Failed to load applications. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredApplications = applications.filter(app => 
     filterStatus === 'all' || app.status === filterStatus
@@ -22,11 +43,39 @@ const StudentApplicationsPage = () => {
     }
   };
 
-  const handleFileUpload = (applicationId, file) => {
-    // Here you would typically upload the file to backend
-    console.log('Uploading file for application:', applicationId, file);
-    alert('File upload functionality would be implemented here');
+  const handleFileUpload = async (applicationId, file) => {
+    try {
+      // This would be implemented if we add file upload for existing applications
+      console.log('Uploading file for application:', applicationId, file);
+      alert('File upload functionality for existing applications is not yet implemented');
+    } catch (error) {
+      console.error('Failed to upload file:', error);
+      alert('Failed to upload file. Please try again.');
+    }
   };
+
+  const handleWithdrawApplication = async (applicationId) => {
+    if (window.confirm('Are you sure you want to withdraw this application?')) {
+      try {
+        await apiService.withdrawApplication(applicationId);
+        setApplications(prev => prev.filter(app => app.id !== applicationId));
+        alert('Application withdrawn successfully');
+      } catch (error) {
+        console.error('Failed to withdraw application:', error);
+        alert('Failed to withdraw application. Please try again.');
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -49,6 +98,13 @@ const StudentApplicationsPage = () => {
           </select>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -101,7 +157,6 @@ const StudentApplicationsPage = () => {
         
         <div className="divide-y divide-gray-200">
           {filteredApplications.map((application) => {
-            const opportunity = mockOpportunities.find(opp => opp.id === application.opportunityId);
             return (
               <div key={application.id} className="p-6">
                 <div className="flex items-start justify-between">
@@ -109,31 +164,34 @@ const StudentApplicationsPage = () => {
                     <div className="flex items-center space-x-4 mb-4">
                       <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-lg font-medium text-gray-700">
-                          {opportunity?.type.charAt(0).toUpperCase()}
+                          {application.opportunity_title?.charAt(0).toUpperCase() || 'O'}
                         </span>
                       </div>
                       <div>
-                        <h4 className="text-lg font-medium text-gray-900">{opportunity?.title}</h4>
-                        <p className="text-gray-600">{opportunity?.company}</p>
+                        <h4 className="text-lg font-medium text-gray-900">{application.opportunity_title || 'Opportunity'}</h4>
+                        <p className="text-gray-600">Application ID: {application.id}</p>
                         <p className="text-sm text-gray-500">
-                          Applied on {new Date(application.appliedAt).toLocaleDateString()}
+                          Applied on {new Date(application.applied_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     
-                    <div className="mb-4">
-                      <h5 className="font-medium text-gray-900 mb-2">Cover Letter:</h5>
-                      <p className="text-gray-600 bg-gray-50 p-3 rounded-md">
-                        {application.coverLetter}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Resume: {application.resume}</span>
-                      <button className="text-primary-600 hover:text-primary-700">
-                        View Resume
-                      </button>
-                    </div>
+                    {application.resume_file && (
+                      <div className="mb-4">
+                        <h5 className="font-medium text-gray-900 mb-2">Resume:</h5>
+                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <span>File: {application.resume_file}</span>
+                          <a
+                            href={apiService.getFileUrl(application.resume_file)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary-600 hover:text-primary-700"
+                          >
+                            View Resume
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="ml-6 flex flex-col items-end space-y-3">
@@ -157,6 +215,15 @@ const StudentApplicationsPage = () => {
                       <div className="text-sm text-red-600 font-medium">
                         Application was not selected this time.
                       </div>
+                    )}
+
+                    {application.status === 'pending' && (
+                      <button
+                        onClick={() => handleWithdrawApplication(application.id)}
+                        className="text-sm text-red-600 hover:text-red-700 underline"
+                      >
+                        Withdraw Application
+                      </button>
                     )}
                   </div>
                 </div>

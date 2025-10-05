@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../../services/api';
+import QuickActionCard from '../../components/QuickActionCard';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -153,34 +154,11 @@ const AdminDashboard = () => {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center">
-                <span className="text-lg mr-3">👥</span>
-                <div>
-                  <p className="font-medium text-gray-900">Manage Users</p>
-                  <p className="text-sm text-gray-600">View and manage all users</p>
-                </div>
-              </div>
-            </button>
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center">
-                <span className="text-lg mr-3">📊</span>
-                <div>
-                  <p className="font-medium text-gray-900">View Reports</p>
-                  <p className="text-sm text-gray-600">Generate platform reports</p>
-                </div>
-              </div>
-            </button>
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center">
-                <span className="text-lg mr-3">⚙️</span>
-                <div>
-                  <p className="font-medium text-gray-900">Platform Settings</p>
-                  <p className="text-sm text-gray-600">Configure platform settings</p>
-                </div>
-              </div>
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <QuickActionCard icon="👥" title="Manage Users" description="View and manage all users" path="/admin/users" />
+            <QuickActionCard icon="🧑‍🎓" title="Manage Alumni" description="Manage alumni profiles" path="/admin/alumni" />
+            <QuickActionCard icon="💼" title="Manage Opportunities" description="Moderate opportunities" path="/admin/opportunities" />
+            <QuickActionCard icon="⚙️" title="System Settings" description="Configure platform settings" path="/admin/settings" />
           </div>
         </div>
 

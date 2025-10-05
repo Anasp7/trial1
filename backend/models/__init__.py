@@ -46,6 +46,12 @@ class AlumniProfile(db.Model):
     occupation = db.Column(db.String(100), nullable=True)
     company = db.Column(db.String(100), nullable=True)
     domain = db.Column(db.String(100), nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    linkedin = db.Column(db.String(255), nullable=True)
+    github = db.Column(db.String(255), nullable=True)
+    profile_pic = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -55,6 +61,12 @@ class AlumniProfile(db.Model):
             'occupation': self.occupation,
             'company': self.company,
             'domain': self.domain,
+            'phone': self.phone,
+            'location': self.location,
+            'bio': self.bio,
+            'linkedin': self.linkedin,
+            'github': self.github,
+            'profile_pic': self.profile_pic,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
@@ -65,6 +77,12 @@ class StudentProfile(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     cgpa = db.Column(db.Float, nullable=True)
     category = db.Column(db.String(50), nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    linkedin = db.Column(db.String(255), nullable=True)
+    github = db.Column(db.String(255), nullable=True)
+    profile_pic = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -73,6 +91,12 @@ class StudentProfile(db.Model):
             'user_id': self.user_id,
             'cgpa': self.cgpa,
             'category': self.category,
+            'phone': self.phone,
+            'location': self.location,
+            'bio': self.bio,
+            'linkedin': self.linkedin,
+            'github': self.github,
+            'profile_pic': self.profile_pic,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
@@ -86,6 +110,12 @@ class Opportunity(db.Model):
     description = db.Column(db.Text, nullable=False)
     min_cgpa = db.Column(db.Float, nullable=True)
     category = db.Column(db.String(50), nullable=True)
+    company = db.Column(db.String(100), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+    duration = db.Column(db.String(50), nullable=True)
+    stipend = db.Column(db.String(100), nullable=True)
+    requirements = db.Column(db.Text, nullable=True)
+    deadline = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -100,6 +130,12 @@ class Opportunity(db.Model):
             'description': self.description,
             'min_cgpa': self.min_cgpa,
             'category': self.category,
+            'company': self.company,
+            'location': self.location,
+            'duration': self.duration,
+            'stipend': self.stipend,
+            'requirements': self.requirements,
+            'deadline': self.deadline.isoformat() if self.deadline else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'alumni_name': self.alumni.name if self.alumni else None
         }

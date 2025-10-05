@@ -1,5 +1,6 @@
 import React from 'react';
 import { mockOpportunities, mockApplications } from '../../utils/mockData';
+import QuickActionCard from '../../components/QuickActionCard';
 
 const AlumniDashboard = () => {
   const myOpportunities = mockOpportunities.filter(opp => opp.postedBy === 2); // Assuming current user is alumni with ID 2
@@ -83,42 +84,10 @@ const AlumniDashboard = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">➕</span>
-              <div>
-                <p className="font-medium text-gray-900">Post Opportunity</p>
-                <p className="text-sm text-gray-600">Create new opportunity</p>
-              </div>
-            </div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">📝</span>
-              <div>
-                <p className="font-medium text-gray-900">Review Applications</p>
-                <p className="text-sm text-gray-600">Check pending applications</p>
-              </div>
-            </div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">📊</span>
-              <div>
-                <p className="font-medium text-gray-900">View Analytics</p>
-                <p className="text-sm text-gray-600">Track your impact</p>
-              </div>
-            </div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">🤝</span>
-              <div>
-                <p className="font-medium text-gray-900">Mentorship</p>
-                <p className="text-sm text-gray-600">Guide students</p>
-              </div>
-            </div>
-          </button>
+          <QuickActionCard icon="➕" title="Post Opportunity" description="Create new opportunity" path="/alumni/opportunities/new" />
+          <QuickActionCard icon="📝" title="Review Applications" description="Check pending applications" path="/alumni/applications" />
+          <QuickActionCard icon="📊" title="View Analytics" description="Track your impact" path="/alumni/analytics" />
+          <QuickActionCard icon="🤝" title="Mentorship" description="Guide students" path="/alumni/mentorship" />
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, User, Opportunity, Application, AlumniProfile
+from datetime import datetime
 from utils.file_utils import save_uploaded_file, delete_file
 
 alumni_bp = Blueprint('alumni', __name__, url_prefix='/api/alumni')
@@ -56,8 +57,22 @@ def create_opportunity():
             title=data['title'],
             description=data['description'],
             min_cgpa=data.get('min_cgpa'),
-            category=data.get('category')
+            category=data.get('category'),
+            company=data.get('company'),
+            location=data.get('location'),
+            duration=data.get('duration'),
+            stipend=data.get('stipend'),
+            requirements=data.get('requirements')
         )
+
+        # Parse deadline string (YYYY-MM-DD) to date
+        if data.get('deadline'):
+            try:
+                opportunity.deadline = datetime.strptime(data['deadline'], "%Y-%m-%d").date()
+            except Exception:
+                return jsonify({'error': 'Invalid deadline format. Use YYYY-MM-DD.'}), 400
+        else:
+            opportunity.deadline = None
         
         db.session.add(opportunity)
         db.session.commit()
@@ -93,6 +108,24 @@ def update_opportunity(opportunity_id):
             opportunity.min_cgpa = data['min_cgpa']
         if 'category' in data:
             opportunity.category = data['category']
+        if 'company' in data:
+            opportunity.company = data['company']
+        if 'location' in data:
+            opportunity.location = data['location']
+        if 'duration' in data:
+            opportunity.duration = data['duration']
+        if 'stipend' in data:
+            opportunity.stipend = data['stipend']
+        if 'requirements' in data:
+            opportunity.requirements = data['requirements']
+        if 'deadline' in data:
+            if data['deadline']:
+                try:
+                    opportunity.deadline = datetime.strptime(data['deadline'], "%Y-%m-%d").date()
+                except Exception:
+                    return jsonify({'error': 'Invalid deadline format. Use YYYY-MM-DD.'}), 400
+            else:
+                opportunity.deadline = None
         
         db.session.commit()
         
