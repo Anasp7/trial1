@@ -1,0 +1,14 @@
+# Database Configuration
+DATABASE_URL=mysql+pymysql://root:password@localhost/alumni_connect
+
+# Security Keys (Change these in production!)
+SECRET_KEY=your-secret-key-here
+JWT_SECRET_KEY=your-jwt-secret-key-here
+
+# File Upload Configuration
+UPLOAD_FOLDER=uploads
+MAX_CONTENT_LENGTH=16777216
+
+# Development Settings
+FLASK_ENV=development
+FLASK_DEBUG=True

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Authentication</title>
+</head>
+<body>
+    <h1>Debug Authentication Flow</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testToken()">Check Token</button>
+    <button onclick="testOpportunities()">Test Opportunities</button>
+    <button onclick="clearToken()">Clear Token</button>
+    <div id="result"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let token = null;
+
+        function log(message) {
+            console.log(message);
+            document.getElementById('result').innerHTML += `<p>${message}</p>`;
+        }
+
+        async function testLogin() {
+            try {
+                log('🔐 Testing login...');
+                
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'john@alumni.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                log(`📥 Login response: ${response.status} - ${JSON.stringify(data)}`);
+                
+                if (data.access_token) {
+                    token = data.access_token;
+                    localStorage.setItem('jwt_token', token);
+                    log(`✅ Token stored: ${token.substring(0, 50)}...`);
+                } else {
+                    log(`❌ No token in response`);
+                }
+            } catch (error) {
+                log(`❌ Login error: ${error.message}`);
+            }
+        }
+
+        function testToken() {
+            const storedToken = localStorage.getItem('jwt_token');
+            log(`🔍 Stored token: ${storedToken ? 'YES' : 'NO'}`);
+            if (storedToken) {
+                log(`📄 Token: ${storedToken.substring(0, 50)}...`);
+            }
+        }
+
+        async function testOpportunities() {
+            const storedToken = localStorage.getItem('jwt_token');
+            
+            if (!storedToken) {
+                log('❌ No token available. Please login first.');
+                return;
+            }
+
+            try {
+                log('🎯 Testing opportunities API...');
+                
+                const response = await fetch(`${API_BASE_URL}/alumni/opportunities`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${storedToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                log(`📥 Opportunities response: ${response.status} - ${JSON.stringify(data)}`);
+                
+                if (response.ok) {
+                    log(`✅ Opportunities loaded: ${data.opportunities ? data.opportunities.length : 0} found`);
+                } else {
+                    log(`❌ Opportunities failed: ${data.error || data.msg}`);
+                }
+            } catch (error) {
+                log(`❌ Opportunities error: ${error.message}`);
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('jwt_token');
+            token = null;
+            log('🗑️ Token cleared');
+        }
+
+        // Check token on page load
+        window.onload = function() {
+            testToken();
+        };
+    </script>
+</body>
+</html>
+

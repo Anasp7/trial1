@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend-Backend Test</title>
+</head>
+<body>
+    <h1>Frontend-Backend Connection Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testOpportunities()">Test Opportunities</button>
+    <div id="result"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let token = null;
+
+        async function testLogin() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'john@alumni.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Login response:', data);
+                
+                if (data.access_token) {
+                    token = data.access_token;
+                    document.getElementById('result').innerHTML = 
+                        `<p style="color: green;">✅ Login successful! Token: ${token.substring(0, 50)}...</p>`;
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        `<p style="color: red;">❌ Login failed: ${JSON.stringify(data)}</p>`;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('result').innerHTML = 
+                    `<p style="color: red;">❌ Login error: ${error.message}</p>`;
+            }
+        }
+
+        async function testOpportunities() {
+            if (!token) {
+                document.getElementById('result').innerHTML = 
+                    `<p style="color: red;">❌ Please login first!</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/alumni/opportunities`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                console.log('Opportunities response:', data);
+                
+                if (data.opportunities) {
+                    document.getElementById('result').innerHTML = 
+                        `<p style="color: green;">✅ Opportunities loaded! Found ${data.opportunities.length} opportunities</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        `<p style="color: red;">❌ Opportunities failed: ${JSON.stringify(data)}</p>`;
+                }
+            } catch (error) {
+                console.error('Opportunities error:', error);
+                document.getElementById('result').innerHTML = 
+                    `<p style="color: red;">❌ Opportunities error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
+
