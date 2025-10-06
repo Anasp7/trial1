@@ -14,30 +14,30 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    # Initialize extensions
+    
     db.init_app(app)
     migrate = Migrate(app, db)
-    CORS(app)  # Enable CORS for frontend integration
-    jwt = JWTManager(app)  # Initialize JWT manager
+    CORS(app)  
+    jwt = JWTManager(app)  
     
-    # Register blueprints
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(alumni_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(profile_bp)
 
-    # Serve uploaded files
+    
     @app.route('/api/files/<path:filename>')
     def serve_file(filename):
         from config import Config
         return send_from_directory(Config.UPLOAD_FOLDER, filename, as_attachment=False)
     
-    # Create tables
+    
     with app.app_context():
         db.create_all()
         
-        # Create default admin user if it doesn't exist
+        
         from models import User, AlumniProfile, StudentProfile
         admin_user = User.query.filter_by(email='admin@alumni.com').first()
         if not admin_user:
@@ -51,7 +51,7 @@ def create_app():
             db.session.commit()
             print("Default admin user created: admin@alumni.com / admin123")
         
-        # Create test alumni user
+      
         alumni_user = User.query.filter_by(email='john@alumni.com').first()
         if not alumni_user:
             alumni_user = User(
@@ -61,9 +61,9 @@ def create_app():
             )
             alumni_user.set_password('admin123')
             db.session.add(alumni_user)
-            db.session.flush()  # Get the ID
+            db.session.flush()  
             
-            # Create alumni profile
+           
             alumni_profile = AlumniProfile(
                 user_id=alumni_user.id,
                 occupation='Software Engineer',
@@ -74,7 +74,7 @@ def create_app():
             db.session.commit()
             print("Test alumni user created: john@alumni.com / admin123")
         
-        # Create test student user
+        
         student_user = User.query.filter_by(email='jane@student.com').first()
         if not student_user:
             student_user = User(
@@ -84,9 +84,9 @@ def create_app():
             )
             student_user.set_password('admin123')
             db.session.add(student_user)
-            db.session.flush()  # Get the ID
+            db.session.flush()  
             
-            # Create student profile
+            
             student_profile = StudentProfile(
                 user_id=student_user.id,
                 cgpa=8.5,
