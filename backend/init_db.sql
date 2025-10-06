@@ -1,5 +1,4 @@
--- Alumni Connect Database Schema
--- Run this script to create the database and tables
+
 
 CREATE DATABASE IF NOT EXISTS alumni_connect;
 USE alumni_connect;
@@ -60,11 +59,11 @@ CREATE TABLE IF NOT EXISTS applications (
     FOREIGN KEY (opportunity_id) REFERENCES opportunities(id) ON DELETE CASCADE
 );
 
--- Insert default admin user (password: admin123)
+-- default admin user 
 INSERT IGNORE INTO users (name, email, password_hash, role) VALUES 
 ('Admin User', 'admin@alumni.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8Kz2', 'admin');
 
--- Sample data for testing
+-- for testing
 INSERT IGNORE INTO users (name, email, password_hash, role) VALUES 
 ('John Alumni', 'john@alumni.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8Kz2', 'alumni'),
 ('Jane Student', 'jane@student.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kz8Kz2', 'student');
