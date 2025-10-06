@@ -5,16 +5,16 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 
-// Import pages
+
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
-// Admin pages
+
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ManageUsersPage from './pages/Admin/ManageUsersPage';
 
-// Alumni pages
+
 import AlumniDashboard from './pages/Alumni/AlumniDashboard';
 import AlumniProfilePage from './pages/Alumni/ProfilePage';
 import AlumniOpportunitiesPage from './pages/Alumni/OpportunitiesPage';
@@ -24,7 +24,7 @@ import AlumniMentorshipPage from './pages/Alumni/MentorshipPage';
 import AlumniSuccessStoriesPage from './pages/Alumni/SuccessStoriesPage';
 import AlumniApplicationsPage from './pages/Alumni/ApplicationsPage';
 
-// Student pages
+
 import StudentDashboard from './pages/Student/StudentDashboard';
 import StudentProfilePage from './pages/Student/ProfilePage';
 import StudentOpportunitiesPage from './pages/Student/OpportunitiesPage';
